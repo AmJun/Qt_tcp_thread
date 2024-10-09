@@ -23,7 +23,7 @@ void SendThread::sendClientName(QString name)
     //1字节的报文类型 0x01
     start.append(type(clientName));
     //1字节
-    unsigned int size = name.size();
+    unsigned int size = name.toUtf8().size();
        //将4字节的int转为char  size<256
     start.append(static_cast<char>(size));
     //填充4字节
@@ -47,7 +47,7 @@ void SendThread::sendChat(QString txt)
     //1字节的报文类型 0x02
     chat.append(type(chatTxt));
     //2字节
-    uint16_t size = txt.size();
+    uint16_t size = txt.toUtf8().size();
     //将int转为char,占2个字节
     //大端模式  低字节在高地址
     chat.append(static_cast<char>(size & 0xFF));
@@ -62,7 +62,6 @@ void SendThread::sendChat(QString txt)
     QByteArray nn = txt.toUtf8();
     m_socket->write(nn);
 }
-
 void SendThread::sendFile(QString path)
 {
     QFile files(path);
@@ -85,7 +84,7 @@ void SendThread::sendFile(QString path)
     filebw.append(static_cast<char>((size >> 16) & 0xFF));
     filebw.append(static_cast<char>((size >> 24) & 0xFF));
     //1字节 fileNameSize
-    uint8_t nameSize =  fileName.size();
+    uint8_t nameSize =  fileName.toUtf8().size();
     filebw.append(static_cast<char>(nameSize));
     //发送报文
     m_socket->write(filebw);
