@@ -1,4 +1,5 @@
-#include "chatworker.h"
+  #include "chatworker.h"
+#include <QDir>
 #include <QFile>
 
 /*
@@ -42,11 +43,15 @@ void chatworker::processFile()
     static QFile* file;
 //    static  long fileCount = 0;
     //创建文件对象
-    if((mReceivedData.size()>=filenameSize) && (!startFlag)){
+    if((!startFlag)&&(mReceivedData.size()>=filenameSize)){
         QByteArray fileNameBytes = mReceivedData.mid(0, filenameSize);
         mReceivedData.remove(0,filenameSize);  //
         QString fileName = QString::fromUtf8(fileNameBytes.constData(), fileNameBytes.size());
-
+        //检测目录
+        if(checkPath("D:/","toolsDownload")){
+            QString PATH = "D:/toolsDownload/";
+            fileName = PATH+fileName;
+        }
         // 使用提取的文件名创建 QFile 对象
         file = new QFile(fileName);
         if(!file->isOpen()){
@@ -97,7 +102,7 @@ void chatworker::processChat()
         QByteArray databytes = mReceivedData.mid(0,dataSizeValue);
         mReceivedData.remove(0,dataSizeValue);  //
         //发送信号
-        emit chatSignal(QString::fromUtf8(databytes.constData(),databytes.size()));
+        emit chatSignal(QString::fromUtf8(databytes));
         //恢复
         flag=0;
     }
@@ -115,8 +120,7 @@ void chatworker::processName()
         QByteArray cname = mReceivedData.mid(0,clientNameSizeValue);
         mReceivedData.remove(0,clientNameSizeValue);  //
         //发送信号
-        emit nameSignal(QString::fromUtf8(cname.constData(),cname.size()));
-
+        emit nameSignal(QString::fromUtf8(cname));
         //恢复
         flag=0;
     }
@@ -202,7 +206,6 @@ QByteArray chatworker::analyseBw()
          }
     }
     if(findHeader || usable_flag==false){
-        qDebug()<<"coming.......";
         if((mReceivedData.size()-count_bw)>=8){
             bw.append(mReceivedData.mid(count_bw,8));
 //            qDebug()<<"bw:"<<bw;
@@ -233,6 +236,33 @@ void chatworker::stopThread()
     m_tcp->deleteLater();
     analyTimer->stop();
     runFlag = false;
+}
+
+bool chatworker::checkPath(const QString &drive, const QString &directoryName)
+{
+    //检查盘符
+     QDir driveDir(drive + "/");
+     if(!driveDir.exists()){
+         return false;
+     }
+     // 构建完整的目录路径
+     QString fullPath = drive + "/" + directoryName;
+     QDir dir(fullPath);
+
+     // 检查目录是否存在
+     if (!dir.exists()) {
+         // 如果目录不存在，尝试创建目录
+         if (!dir.mkpath(fullPath)) {
+             qWarning() << "Failed to create directory:" << fullPath;
+             return false;
+         } else {
+             qDebug() << "Directory created:" << fullPath;
+         }
+     } else {
+         qDebug() << "Directory already exists:" << fullPath;
+     }
+
+     return true;
 }
 
 ////校验和计算
