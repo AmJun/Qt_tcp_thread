@@ -20,6 +20,7 @@ public:
     QByteArray analyseBw();
     void analesedata();
     void stopThread();
+    bool checkPath(const QString &drive, const QString &directoryName);
 
 private:
     //线程工作标志
